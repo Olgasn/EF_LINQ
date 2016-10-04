@@ -11,6 +11,7 @@ namespace EF_LINQ
         {
             // Создаем экземпляр класса контекста 
             toplivoEntities db = new toplivoEntities();
+            //Выполняем разные методы, содержащие операции выборки и изменения данных
             Console.WriteLine("====== Будет выполнена выборка данных (нажмите любую клавишу) ========");
             Console.ReadKey();
             Select(db);
@@ -31,28 +32,22 @@ namespace EF_LINQ
             Select(db);
 
             db.Dispose();
-
-
         }
 
         static void Print(string sqltext, IEnumerable items)
         {
             Console.WriteLine(sqltext);
             Console.WriteLine("Записи: ");
-
             foreach (var item in items)
-
             {
                 Console.WriteLine(item.ToString());
             }
             Console.WriteLine();
             Console.ReadKey();
-
         }
 
         static void Insert(toplivoEntities db)
         {
-            //---------------------
             // Создать новую емкость
             Tank tank = new Tank
             {
@@ -61,13 +56,11 @@ namespace EF_LINQ
                 TankVolume = 30,
                 TankWeight = 100
             };
-            //---------------------
             // Создать новый вид топлива
             Fuel fuel = new Fuel
             {
                 FuelType = "Нитроглицерин",
                 FuelDensity = 3
-
             };
 
             // Добавить в DbSet
@@ -76,6 +69,19 @@ namespace EF_LINQ
             // Сохранить изменения в базе данных
             db.SaveChanges();
 
+            // Создать новую операцию
+            Operation operation = new Operation
+            {
+                TankID = tank.TankID,
+                FuelID = fuel.FuelID,
+                Inc_Exp = 1000,
+                Date = DateTime.Now
+            };
+
+            // Добавить в DbSet
+            db.Operations.Add(operation);
+            // Сохранить изменения в базе данных
+            db.SaveChanges();
 
         }
         static void Select(toplivoEntities db)
@@ -144,10 +150,8 @@ namespace EF_LINQ
             comment += queryLINQ3.ToString();
             //для наглядности выводим не более 5 записей
             Print(comment, queryLINQ3.Take(5).ToList());
-
-
-
         }
+
         static void Delete(toplivoEntities db)
         {
             //подлежащие удалению записи в таблице Tanks
@@ -158,7 +162,6 @@ namespace EF_LINQ
             string namefuel = "Нитроглицерин1";
             var fuel = db.Fuels
                 .Where(c => c.FuelType == namefuel);
-
 
             //подлежащие удалению записи в связанной таблице Operations
             var someOperations = db.Operations
@@ -178,7 +181,6 @@ namespace EF_LINQ
             // сохранить изменения в базе данных
             db.SaveChanges();
 
-
         }
         static void Update(toplivoEntities db)
         {
@@ -186,27 +188,35 @@ namespace EF_LINQ
             string nametank = "Бочка";
             var tank = db.Tanks.Where(c => c.TankType == nametank).FirstOrDefault();
             //обновление
-            tank.TankType = "Бочка1";
-            tank.TankMaterial = "Дерево1";
+            if (tank != null)
+                {
+                tank.TankType = "Бочка1";
+                tank.TankMaterial = "Дерево1";
+                };
 
             //подлежащие обновлению записи в таблице Fuels
             string namefuel = "Нитроглицерин";
             var fuel = db.Fuels.Where(c => c.FuelType == namefuel).FirstOrDefault();
             //обновление
-            fuel.FuelType = "Нитроглицерин1";
+            if (fuel != null)
+            {
+                fuel.FuelType = "Нитроглицерин1";
+            };
 
             //подлежащие обновлению записи в связанной таблице Operations
-            var someOperations = db.Operations
-                .Include("Tank")
-                .Include("Fuel")
+            var someOperations = db.Operations.Include("Tank").Include("Fuel")
                 .Where(o => ((o.Tank.TankType == nametank)) && (o.Fuel.FuelType == namefuel));
             //обновление
-            foreach (var op in someOperations) op.Inc_Exp = 0;
-
+            if (someOperations != null)
+            {
+                foreach (var op in someOperations)
+                {
+                    op.Inc_Exp = 0;
+                };
+            } 
 
             // сохранить изменения в базе данных
             db.SaveChanges();
-
    
         }
         
