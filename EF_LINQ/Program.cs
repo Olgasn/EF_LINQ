@@ -7,6 +7,33 @@ namespace EF_LINQ
 {
     class Program
     {
+        static void Main(string[] args)
+        {
+            // Создаем экземпляр класса контекста 
+            toplivoEntities db = new toplivoEntities();
+            Console.WriteLine("====== Будет выполнена выборка данных (нажмите любую клавишу) ========");
+            Console.ReadKey();
+            Select(db);
+            Console.WriteLine("====== Будет выполнена вставка данных (нажмите любую клавишу) ========");
+            Console.ReadKey();
+            Insert(db);
+            Console.WriteLine("====== Выборка после вставки ========");
+            Select(db);
+            Console.WriteLine("====== Будет выполнено обновление данных (нажмите любую клавишу) ========");
+            Console.ReadKey();
+            Update(db);
+            Console.WriteLine("====== Выборка после обновления ========");
+            Select(db);
+            Console.WriteLine("====== Будет выполнено удаление данных (нажмите любую клавишу) ========");
+            Console.ReadKey();
+            Delete(db);
+            Console.WriteLine("====== Выборка после удаления ========");
+            Select(db);
+
+            db.Dispose();
+
+
+        }
 
         static void Print(string sqltext, IEnumerable items)
         {
@@ -58,7 +85,7 @@ namespace EF_LINQ
             var queryLINQ1 = from f in db.Operations
                              join t in db.Fuels
                              on f.FuelID equals t.FuelID
-                             where (f.Inc_Exp > 0 && f.Date.Value.Year == 2015)
+                             where (f.Inc_Exp > 0 && f.Date.Value.Year == 2016)
                              orderby f.FuelID descending
                              select new
                              {
@@ -69,17 +96,18 @@ namespace EF_LINQ
                              };
 
             //то же, используя методы расширений
-            //var queryLINQ1 = db.Operations.Where(f => (f.Inc_Exp > 0 && f.Date.Value.Year == 2015))
+            //var queryLINQ1 = db.Operations.Where(f => (f.Inc_Exp > 0 && f.Date.Value.Year == 2016))
             //.OrderBy(f => f.FuelID)
             //.Join(db.Fuels, f => f.FuelID, t => t.FuelID, (f, t) => new { f.OperationID, t.FuelType, f.Inc_Exp, f.Date.Value.Month });
 
             string comment = "1. Результат выполнения запроса на выборку отсортированных записей из двух таблиц, удовлетворяющих заданному условию : \r\n";
             comment += queryLINQ1.ToString();
-            Print(comment, queryLINQ1.ToList());
+            //для наглядности выводим не более 5 записей
+            Print(comment, queryLINQ1.Take(5).ToList());
 
             // Определение LINQ запроса 2 
             var queryLINQ2 = from o in db.Operations
-                             where (o.Inc_Exp > 0 && o.Date.Value.Year == 2015)
+                             where (o.Inc_Exp > 0 && o.Date.Value.Year == 2016)
                              group o.Inc_Exp by o.FuelID into gr
                              select new
                              {
@@ -87,7 +115,7 @@ namespace EF_LINQ
                                  Количество_топлива = gr.Sum()
                              };
             //то же, используя методы расширений:
-            //var queryLINQ2 = db.Operations.Where(o => ((o.Inc_Exp > (Single?)0) && (o.Date.Value.Year == 2015)))
+            //var queryLINQ2 = db.Operations.Where(o => ((o.Inc_Exp > (Single?)0) && (o.Date.Value.Year == 2016)))
             //    .GroupBy(o => o.FuelID, o => o.Inc_Exp)
             //    .Select(gr => new
             //    {
@@ -98,7 +126,8 @@ namespace EF_LINQ
 
             comment = "2. Результат выполнения запроса на выборку сгруппированных записей из одной таблицы, удовлетворяющих заданному условию, с выполнением групповой операции суммирования : \r\n";
             comment += queryLINQ2.ToString();
-            Print(comment, queryLINQ2.ToList());
+            //для наглядности выводим не более 5 записей
+            Print(comment, queryLINQ2.Take(5).ToList());
 
             // Определение LINQ запроса 3
             var queryLINQ3 = from t in db.Tanks
@@ -113,7 +142,8 @@ namespace EF_LINQ
 
             comment = "3. Результат выполнения запроса на выборку записей из одной таблицы с выводом определенных полей: \r\n";
             comment += queryLINQ3.ToString();
-            Print(comment, queryLINQ3.ToList());
+            //для наглядности выводим не более 5 записей
+            Print(comment, queryLINQ3.Take(5).ToList());
 
 
 
@@ -121,11 +151,11 @@ namespace EF_LINQ
         static void Delete(toplivoEntities db)
         {
             //подлежащие удалению записи в таблице Tanks
-            string nametank = "Бочка";
+            string nametank = "Бочка1";
             var tank = db.Tanks.Where(c => c.TankType == nametank);
 
             //подлежащие удалению записи в таблице Fuels
-            string namefuel = "Нитроглицерин";
+            string namefuel = "Нитроглицерин1";
             var fuel = db.Fuels
                 .Where(c => c.FuelType == namefuel);
 
@@ -150,34 +180,35 @@ namespace EF_LINQ
 
 
         }
-        static void Update()
+        static void Update(toplivoEntities db)
         {
+            //подлежащие обновлению записи в таблице Tanks
+            string nametank = "Бочка";
+            var tank = db.Tanks.Where(c => c.TankType == nametank).FirstOrDefault();
+            //обновление
+            tank.TankType = "Бочка1";
+            tank.TankMaterial = "Дерево1";
+
+            //подлежащие обновлению записи в таблице Fuels
+            string namefuel = "Нитроглицерин";
+            var fuel = db.Fuels.Where(c => c.FuelType == namefuel).FirstOrDefault();
+            //обновление
+            fuel.FuelType = "Нитроглицерин1";
+
+            //подлежащие обновлению записи в связанной таблице Operations
+            var someOperations = db.Operations
+                .Include("Tank")
+                .Include("Fuel")
+                .Where(o => ((o.Tank.TankType == nametank)) && (o.Fuel.FuelType == namefuel));
+            //обновление
+            foreach (var op in someOperations) op.Inc_Exp = 0;
 
 
+            // сохранить изменения в базе данных
+            db.SaveChanges();
 
-
+   
         }
-        static void Main(string[] args)
-        {
-            // Создаем экземпляр класса контекста 
-            toplivoEntities db = new toplivoEntities();
-            Console.WriteLine("====== Выборка данных ========");
-            Console.ReadKey();
-            Select(db);
-            Console.WriteLine("====== Будет выполнена вставка данных ========");
-            Console.ReadKey();
-            Insert(db);
-            Console.WriteLine("====== Выборка после вставки ========");
-            Select(db);
-            Console.WriteLine("====== Будет выполнено удаление данных ========");
-            Console.ReadKey();
-            Delete(db);
-            Console.WriteLine("====== Выборка после удаления ========");
-            Select(db);
-
-            db.Dispose();
-
-
-        }
+        
     }
 }
