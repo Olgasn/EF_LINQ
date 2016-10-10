@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\DdInitializer.cs" />
     <Compile Include="Models\Fuel.cs" />
     <Compile Include="Models\Operation.cs" />
     <Compile Include="Models\Tank.cs" />
