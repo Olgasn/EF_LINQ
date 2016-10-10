@@ -12,7 +12,7 @@ namespace EF_LINQ
         static void Main(string[] args)
         {
             //Инициализация БД путем выполнения кода в классе инициализатора с использование методов EF
-            Database.SetInitializer(new DdInitializer());
+            //Database.SetInitializer(new DdInitializer());
 
 
             // Создаем экземпляр класса контекста 

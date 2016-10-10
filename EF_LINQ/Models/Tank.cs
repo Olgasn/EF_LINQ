@@ -5,7 +5,6 @@ namespace EF_LINQ.Models
 
     public partial class Tank
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Tank()
         {
             Operations = new HashSet<Operation>();
@@ -26,7 +25,6 @@ namespace EF_LINQ.Models
         [StringLength(50)]
         public string TankPicture { get; set; }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Operation> Operations { get; set; }
     }
 }
